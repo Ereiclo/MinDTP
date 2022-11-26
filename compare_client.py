@@ -1,4 +1,5 @@
 from dtp_client import DTPSender
+from config import *
 from socket import *
 import string
 import random
@@ -7,24 +8,6 @@ def random_string(length, critical=True):
     letters = "abcdefghijklmnopqrstuvwxyz"
     rand_string = ''.join(random.choice(letters) for _ in range(length-1)) + '1' if critical else '0'  
     return rand_string
-
-# CONSTANTS
-CRITICAL_FRAGMENTS = 0.3
-NUMBER_FRAGMENTS   = 10000
-FRAGMENT_LENGTH    = 55000
-
-NUM_CRITICAL_FRAGMENTS = int(NUMBER_FRAGMENTS * CRITICAL_FRAGMENTS)
-NUM_ORDINARY_FRAGMENTS = int(NUMBER_FRAGMENTS - NUM_CRITICAL_FRAGMENTS)
-
-# CONFIG
-DTP_DST_IP   = "127.0.0.1"
-DTP_DST_PORT = 7500
-DTP_SRC_IP   = "127.0.0.1"
-DTP_SRC_PORT = 7501
-TCP_DST_IP   = "127.0.0.1"
-TCP_DST_PORT = 7400
-TCP_SRC_IP   = "127.0.0.1"
-TCP_SRC_PORT = 7401
 
 print(f"""
 CONFIG:
@@ -66,6 +49,7 @@ dtpsender.close()
 # TCP SEND
 print("TCP")
 tcp_socket = socket(AF_INET, SOCK_STREAM)
+tcp_socket.bind((TCP_SRC_IP,TCP_SRC_PORT))
 tcp_socket.connect((TCP_DST_IP,TCP_DST_PORT))
 # tcp_socket.send(fragments[0][2].encode())
 # tcp_socket.recv(1024)

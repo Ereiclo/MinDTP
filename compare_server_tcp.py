@@ -1,19 +1,21 @@
 from socket import *
+from config import *
+
 import random
 import time
-serverPort = 7400
+
 serverSocket = socket(AF_INET,SOCK_STREAM)
-serverSocket.bind(("",serverPort))
+serverSocket.bind((TCP_DST_IP,TCP_DST_PORT))
 serverSocket.listen(1)
 print("The server is ready to handle requests")
 
 
-LOSS_RATE = 0.3
+
 AVG_DELAY = 2
 # Fragments consts
-CRITICAL_FRAGMENTS = 0.3
-NUM_TOTAL_PACKETS    = 10000
-NUM_CRITICAL_PACKETS = int(NUM_TOTAL_PACKETS * 0.3)
+LOSS_RATE = 0.3
+
+
 # Counts
 COUNT_ACTUAL_CP      = 0
 COUNT_ACTUAL_TP      = 0
@@ -22,6 +24,9 @@ START                = 0
 TIME_START           = None 
 TIME_FINISH_CRITICAL = None 
 TIME_FINISH_TOTAL    = None
+
+
+
 
 
 
@@ -46,7 +51,9 @@ while True:
 
 
 
-    ack = "ok" if random.random() >= LOSS_RATE else "not ok"
+    # ack = "ok" if random.random() >= LOSS_RATE else "not ok"
+
+    ack = "ok"
 
     # print(mess)
 
@@ -63,9 +70,9 @@ while True:
     COUNT_ACTUAL_TP += ((mess[-1] == "1") or (mess[-1] == "0"))
 
 
-    if COUNT_ACTUAL_CP == NUM_CRITICAL_PACKETS and TIME_FINISH_CRITICAL is None:
+    if COUNT_ACTUAL_CP == NUM_CRITICAL_FRAGMENTS and TIME_FINISH_CRITICAL is None:
         TIME_FINISH_CRITICAL = time.time()
-    if COUNT_ACTUAL_TP == NUM_TOTAL_PACKETS:
+    if COUNT_ACTUAL_TP == NUMBER_FRAGMENTS:
         TIME_FINISH_TOTAL = time.time()
         break
 

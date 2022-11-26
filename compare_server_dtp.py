@@ -1,17 +1,13 @@
 from socket import *
+from config import *
 import time
 from dtp_frame import DTPFrame
 import random
 
-serverPort = 7500
 serverSocket = socket(AF_INET, SOCK_DGRAM)
-serverSocket.bind(("", serverPort))
-LOSS_RATE = 0.3
-AVG_DELAY = 2
-# Fragments consts
-CRITICAL_FRAGMENTS = 0.3
-NUM_TOTAL_PACKETS    = 10000
-NUM_CRITICAL_PACKETS = int(NUM_TOTAL_PACKETS * 0.3)
+serverSocket.bind((DTP_DST_IP, DTP_DST_PORT))
+LOSS_RATE = 0
+
 # Counts
 COUNT_ACTUAL_CP      = 0
 COUNT_ACTUAL_TP      = 0
@@ -20,6 +16,7 @@ START                = 0
 TIME_START           = None 
 TIME_FINISH_CRITICAL = None 
 TIME_FINISH_TOTAL    = None
+streams_confirmed = {}
 print("The server is ready to handle requests")
 while True:
     message, clientAddress = serverSocket.recvfrom(1024)
@@ -43,14 +40,32 @@ while True:
             message = "ok".encode("ascii")
             #if packet.FIN:
             #    print(packet.message.decode("ascii")[-1] == "1")
-            COUNT_ACTUAL_CP += ((packet.message.decode("ascii")[-1] == "1") and packet.FIN)
-            COUNT_ACTUAL_TP += (packet.FIN)
+
+            if packet.stream_id not in streams_confirmed:
+                if packet.FIN:
+                    COUNT_ACTUAL_CP += ((packet.message.decode("ascii")[-1] == "1"))
+                    streams_confirmed[packet.stream_id] = True 
+                    COUNT_ACTUAL_TP += 1 
+
         response = DTPFrame(packet.stream_id, message=message, ACK=ack, NAK= not ack, SRM=0, FIN=packet.FIN)
     serverSocket.sendto(response.encode(),clientAddress)
-    if COUNT_ACTUAL_CP == NUM_CRITICAL_PACKETS and TIME_FINISH_CRITICAL is None:
+    if COUNT_ACTUAL_CP == NUM_CRITICAL_FRAGMENTS and TIME_FINISH_CRITICAL is None:
         TIME_FINISH_CRITICAL = time.time()
-    if COUNT_ACTUAL_TP == NUM_TOTAL_PACKETS:
+    if COUNT_ACTUAL_TP == NUMBER_FRAGMENTS:
         TIME_FINISH_TOTAL = time.time()
         break
+
+
+
 print(f"(DTP) Time elapsed to recieve all critical frames: {TIME_FINISH_CRITICAL - TIME_START}" )
 print(f"(DTP) Time elapsed to recieve all frames: {TIME_FINISH_TOTAL - TIME_START}" )
+
+
+while True:
+
+    message, clientAddress = serverSocket.recvfrom(1024)
+    ack = 1
+    response = DTPFrame(packet.stream_id, message=message, ACK=ack, NAK= not ack, SRM=0, FIN=1)
+    serverSocket.sendto(response.encode(),clientAddress)
+ 
+

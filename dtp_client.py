@@ -182,9 +182,27 @@ class DTPSender():
 
     def handshake(self):
         # Send Hello/Crypto (SIMULATION)
-        message = DTPFrame(0, message=b"hello", ACK=0, NAK=0, SRM=0, FIN=0, CRT=1)
-        self.sock.sendto(message.encode(), (self.dst_ip, self.dst_port))
-        response = self.sock.recv(self.MESSAGE_SIZE)
+
+        while True:
+            message = DTPFrame(0, message=b"hello", ACK=0, NAK=0, SRM=0, FIN=0, CRT=1)
+            self.sock.sendto(message.encode(), (self.dst_ip, self.dst_port))
+
+            self.sock.settimeout(self.CONNECTION_TIMEOUT)
+
+            try:
+                response = self.sock.recv(self.MESSAGE_SIZE+2)
+                response_frame = DTPFrame.decode(response)
+
+                if response_frame.CRT:
+                    print("Hanshake successful")
+                    break
+                else:
+                    print("Hanshake failed")
+
+            except:
+                print(f"Hanshake timeout")
+
+
         return True
     
     def send_request(self, block_message, priority):
