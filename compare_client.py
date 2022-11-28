@@ -64,4 +64,5 @@ for frag_id, _, block in fragments:
         if r == "not ok":
             continue
         block = block[1024:]
+
 tcp_socket.close()
